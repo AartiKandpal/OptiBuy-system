@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiBuy | Automated Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #141414; }
+        .hero-gradient { background: linear-gradient(to top, #141414, transparent); }
+    </style>
+</head>
+<body class="text-white font-sans selection:bg-red-600">
+
+    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+        <h1 class="text-red-600 text-4xl font-black tracking-tighter">OPTIBUY</h1>
+        <div class="flex space-x-3">
+            <input id="searchBox" type="text" placeholder="Search for products..." 
+                   class="bg-black/50 border border-gray-600 px-4 py-2 rounded text-sm focus:outline-none focus:border-red-600 w-64 md:w-80 transition-all">
+            <button onclick="startSearch()" class="bg-red-600 px-6 py-2 rounded font-bold hover:bg-red-700 active:scale-95 transition">Compare</button>
+        </div>
+    </nav>
+
+    <header class="h-[65vh] relative flex items-end p-12 bg-[url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600')] bg-cover bg-center">
+        <div class="absolute inset-0 hero-gradient"></div>
+        <div class="relative z-10 max-w-2xl">
+            <h2 class="text-6xl font-extrabold mb-4 leading-tight">Find the <span class="text-red-600">Optimal</span> Price.</h2>
+            <p class="text-gray-300 text-xl font-light">Real-time comparison across Amazon, Flipkart, Myntra, Savana, Purplle and more.</p>
+        </div>
+    </header>
+
+    <main class="px-12 py-10 -mt-24 relative z-20">
+        <h3 id="statusText" class="text-2xl font-bold mb-8 text-gray-100">Top Categories</h3>
+        
+        <div id="resultsGrid" class="flex flex-wrap gap-8 justify-center md:justify-start">
+            <div class="w-64 h-48 bg-gray-800/50 rounded-lg animate-pulse border border-gray-700"></div>
+            <div class="w-64 h-48 bg-gray-800/50 rounded-lg animate-pulse border border-gray-700"></div>
+            <div class="w-64 h-48 bg-gray-800/50 rounded-lg animate-pulse border border-gray-700"></div>
+        </div>
+    </main>
+
+    <script>
+        async function startSearch() {
+            const query = document.getElementById('searchBox').value;
+            const grid = document.getElementById('resultsGrid');
+            const status = document.getElementById('statusText');
+
+            if (!query) return alert("Pehle kuch search toh karo!");
+
+            status.innerText = `Fetching deals for "${query}"...`;
+            grid.innerHTML = '<div class="col-span-full py-20 flex justify-center w-full"><div class="animate-spin rounded-full h-16 w-16 border-t-4 border-red-600 border-gray-800"></div></div>';
+
+            try {
+                const response = await fetch(`/search?q=${query}`);
+                const data = await response.json();
+                
+                grid.innerHTML = '';
+                data.forEach(item => {
+                    grid.innerHTML += `
+                        <div class="group relative w-64 bg-gray-900/80 rounded-lg transition-all duration-500 hover:scale-110 hover:z-40 shadow-2xl border border-gray-800 hover:border-red-600 cursor-pointer overflow-hidden">
+                            <div class="p-8">
+                                <span class="text-red-500 text-xs font-black uppercase tracking-widest">${item.site}</span>
+                                <h4 class="text-3xl font-bold mt-3 mb-6">${item.price}</h4>
+                                <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <a href="${item.link}" target="_blank" class="block w-full text-center bg-white text-black py-2.5 rounded font-bold text-sm hover:bg-gray-200">View Deal</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                status.innerText = `Best Results for "${query}"`;
+            } catch (err) {
+                status.innerText = "Error: Check your connection or server.";
+            }
+        }
+    </script>
+</body>
+</html>
